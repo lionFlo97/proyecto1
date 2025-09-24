@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Package, MapPin, AlertTriangle, Image, Settings, ArrowLeft, List, Grid3X3, ChevronDown, ChevronRight, Wrench, Zap, Cog, Droplets, Layers, Plus } from 'lucide-react';
+import { Search, Package, MapPin, AlertTriangle, Image, Settings, ArrowLeft, List, Grid3X3, ChevronDown, ChevronRight, Wrench, Zap, Cog, Droplets, Layers, Plus, ArrowRight } from 'lucide-react';
 import { InventoryItem } from '../types/inventory';
 import { inventoryApi } from '../services/api';
 import { AddItemModal } from './AddItemModal';

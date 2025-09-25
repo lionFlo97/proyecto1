@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Package, MapPin, AlertTriangle, Image, Settings, ArrowLeft, List, Grid3X3, ChevronDown, ChevronRight, Wrench, Zap, Cog, Droplets, Layers, Plus, ArrowRight } from 'lucide-react';
+import { Search, Package, MapPin, AlertTriangle, Image, Settings, ArrowLeft, List, Grid3X3, ChevronDown, ChevronRight, Wrench, Zap, Cog, Droplets, Layers, Plus, ArrowRight, History, ShoppingCart } from 'lucide-react';
 import { InventoryItem } from '../types/inventory';
 import { inventoryApi } from '../services/api';
 import { AddItemModal } from './AddItemModal';
 import { NewInventoryItem } from '../types/inventory';
 import { CategoryReassignModal } from './CategoryReassignModal';
+import { MaterialExitModal } from './MaterialExitModal';
+import { MaterialExitHistoryModal } from './MaterialExitHistoryModal';
+import { materialExitApi } from '../services/materialExitApi';
+import { NewMaterialExit } from '../types/materialExit';
 
 import { searchInventoryItem } from '../utils/search';
 
@@ -26,6 +30,11 @@ export function ViewerMode({ onBackToEditor }: ViewerModeProps) {
   const [itemToReassign, setItemToReassign] = useState<InventoryItem | null>(null);
   const [currentItemCategory, setCurrentItemCategory] = useState('');
   const [isReassigning, setIsReassigning] = useState(false);
+  const [isExitModalOpen, setIsExitModalOpen] = useState(false);
+  const [selectedMaterialForExit, setSelectedMaterialForExit] = useState<InventoryItem | null>(null);
+  const [isProcessingExit, setIsProcessingExit] = useState(false);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [selectedMaterialForHistory, setSelectedMaterialForHistory] = useState<{ id: number; name: string } | null>(null);
 
   useEffect(() => {
     loadInventory();
@@ -47,10 +56,11 @@ export function ViewerMode({ onBackToEditor }: ViewerModeProps) {
     const matchesSearch = searchInventoryItem(item, searchTerm);
     
     const puntoPedido = item.puntoPedido || 5;
+    const criticalThreshold = Math.floor(puntoPedido / 2);
     const matchesFilter = 
       stockFilter === 'all' ||
-      (stockFilter === 'low' && item.stock <= puntoPedido) ||
-      (stockFilter === 'critical' && item.stock <= Math.floor(puntoPedido / 2));
+      (stockFilter === 'low' && item.stock <= puntoPedido && item.stock > criticalThreshold) ||
+      (stockFilter === 'critical' && item.stock <= criticalThreshold);
     
     return matchesSearch && matchesFilter;
   });
@@ -208,6 +218,47 @@ export function ViewerMode({ onBackToEditor }: ViewerModeProps) {
     } finally {
       setIsReassigning(false);
     }
+  };
+
+  const handleMaterialExit = (material: InventoryItem) => {
+    setSelectedMaterialForExit(material);
+    setIsExitModalOpen(true);
+  };
+
+  const handleConfirmExit = async (exitData: NewMaterialExit) => {
+    if (!selectedMaterialForExit) return;
+
+    try {
+      setIsProcessingExit(true);
+      
+      // Registrar la salida
+      await materialExitApi.create(exitData, selectedMaterialForExit);
+      
+      // Actualizar el stock del material
+      const newStock = selectedMaterialForExit.stock - exitData.quantity;
+      const updatedMaterial = { ...selectedMaterialForExit, stock: newStock };
+      
+      // Aquí deberías actualizar el inventario también
+      // Por ahora solo actualizamos el estado local
+      setItems(prev => prev.map(item => 
+        item.id === selectedMaterialForExit.id ? updatedMaterial : item
+      ));
+      
+      setIsExitModalOpen(false);
+      setSelectedMaterialForExit(null);
+      
+      // Recargar inventario para obtener datos actualizados
+      await loadInventory();
+    } catch (error) {
+      console.error('Error processing material exit:', error);
+    } finally {
+      setIsProcessingExit(false);
+    }
+  };
+
+  const handleViewHistory = (material: InventoryItem) => {
+    setSelectedMaterialForHistory({ id: material.id, name: material.nombre });
+    setIsHistoryModalOpen(true);
   };
 
   if (loading) {
@@ -423,6 +474,24 @@ export function ViewerMode({ onBackToEditor }: ViewerModeProps) {
                                 <ArrowRight className="h-4 w-4" />
                               </button>
                               
+                              {/* Botones de acción en la esquina superior derecha */}
+                              <div className="absolute top-2 right-10 flex space-x-1">
+                                <button
+                                  onClick={() => handleViewHistory(item)}
+                                  className="p-1 text-blue-600 hover:bg-blue-100 rounded-full transition-colors"
+                                  title="Ver historial de salidas"
+                                >
+                                  <History className="h-3 w-3" />
+                                </button>
+                                <button
+                                  onClick={() => handleMaterialExit(item)}
+                                  className="p-1 text-orange-600 hover:bg-orange-100 rounded-full transition-colors"
+                                  title="Registrar salida"
+                                >
+                                  <ShoppingCart className="h-3 w-3" />
+                                </button>
+                              </div>
+                              
                               {item.foto && (
                                 <div className="mb-4">
                                   <img
@@ -475,6 +544,23 @@ export function ViewerMode({ onBackToEditor }: ViewerModeProps) {
                                     <p className="text-2xl font-bold text-slate-900">{item.stock}</p>
                                     <span className="text-sm text-slate-500">{item.unidad}</span>
                                   </div>
+                                </div>
+                                
+                                <div className="flex space-x-2">
+                                  <button
+                                    onClick={() => handleViewHistory(item)}
+                                    className="flex items-center space-x-1 px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                  >
+                                    <History className="h-3 w-3" />
+                                    <span>Historial</span>
+                                  </button>
+                                  <button
+                                    onClick={() => handleMaterialExit(item)}
+                                    className="flex items-center space-x-1 px-2 py-1 text-xs text-orange-600 hover:bg-orange-50 rounded transition-colors"
+                                  >
+                                    <ShoppingCart className="h-3 w-3" />
+                                    <span>Salida</span>
+                                  </button>
                                 </div>
                                 
                                 {item.stock <= (item.puntoPedido || 5) && (
@@ -568,6 +654,23 @@ export function ViewerMode({ onBackToEditor }: ViewerModeProps) {
                       </div>
                     </div>
                     
+                    <div className="flex flex-col space-y-2">
+                      <button
+                        onClick={() => handleViewHistory(item)}
+                        className="flex items-center space-x-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      >
+                        <History className="h-4 w-4" />
+                        <span>Historial</span>
+                      </button>
+                      <button
+                        onClick={() => handleMaterialExit(item)}
+                        className="flex items-center space-x-2 px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                      >
+                        <ShoppingCart className="h-4 w-4" />
+                        <span>Registrar Salida</span>
+                      </button>
+                    </div>
+                    
                     {item.stock <= (item.puntoPedido || 5) && (
                       <div className="flex items-center space-x-2 text-red-600">
                         <AlertTriangle className="h-6 w-6" />
@@ -604,6 +707,27 @@ export function ViewerMode({ onBackToEditor }: ViewerModeProps) {
         item={itemToReassign}
         currentCategory={currentItemCategory}
         isReassigning={isReassigning}
+      />
+
+      <MaterialExitModal
+        isOpen={isExitModalOpen}
+        onClose={() => {
+          setIsExitModalOpen(false);
+          setSelectedMaterialForExit(null);
+        }}
+        onConfirm={handleConfirmExit}
+        material={selectedMaterialForExit}
+        isProcessing={isProcessingExit}
+      />
+
+      <MaterialExitHistoryModal
+        isOpen={isHistoryModalOpen}
+        onClose={() => {
+          setIsHistoryModalOpen(false);
+          setSelectedMaterialForHistory(null);
+        }}
+        materialId={selectedMaterialForHistory?.id || null}
+        materialName={selectedMaterialForHistory?.name || ''}
       />
     </div>
   );

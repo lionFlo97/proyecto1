@@ -10,6 +10,7 @@ import { CategoryView } from './components/CategoryView';
 import { ViewerMode } from './components/ViewerMode';
 import { SearchBar } from './components/SearchBar';
 import { StatsGrid } from './components/StatsGrid';
+import { StockCriticalityCharts } from './components/StockCriticalityCharts';
 import { InventoryItem, NewInventoryItem } from './types/inventory';
 import { AddItemModal } from './components/AddItemModal';
 import { inventoryApi } from './services/api';
@@ -159,10 +160,11 @@ function App() {
     const matchesSearch = searchInventoryItem(item, searchTerm);
     
     const puntoPedido = item.puntoPedido || 5;
+    const criticalThreshold = Math.floor(puntoPedido / 2);
     const matchesFilter = 
       stockFilter === 'all' ||
-      (stockFilter === 'low' && item.stock <= puntoPedido) ||
-      (stockFilter === 'critical' && item.stock <= Math.floor(puntoPedido / 2));
+      (stockFilter === 'low' && item.stock <= puntoPedido && item.stock > criticalThreshold) ||
+      (stockFilter === 'critical' && item.stock <= criticalThreshold);
     
     return matchesSearch && matchesFilter;
   });
@@ -224,6 +226,8 @@ function App() {
         </div>
 
         <StatsGrid items={items} />
+
+        <StockCriticalityCharts items={items} />
 
         <SearchBar
           searchTerm={searchTerm}

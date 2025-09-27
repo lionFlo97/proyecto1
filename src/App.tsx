@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, FileSpreadsheet, Eye, Settings, Trash2, Download, Upload, BarChart3, TrendingUp, Package, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
-import { Layout } from './components/Layout';
+import Layout from './components/Layout';
 import { InventoryCard } from './components/InventoryCard';
 import { EditItemModal } from './components/EditItemModal';
 import { ImportExcelModal } from './components/ImportExcelModal';

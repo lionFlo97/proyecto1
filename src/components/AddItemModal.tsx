@@ -306,12 +306,35 @@ export function AddItemModal({
               Foto del Material (Opcional)
             </label>
             
+            <div className="mb-3">
+              <label htmlFor="fotoUrl" className="block text-xs font-medium text-slate-600 mb-1">
+                URL de imagen (opcional)
+              </label>
+              <input
+                type="url"
+                id="fotoUrl"
+                value={formData.foto || ''}
+                onChange={(e) => {
+                  handleInputChange('foto', e.target.value);
+                  setPreviewImage(e.target.value);
+                }}
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                placeholder="https://ejemplo.com/imagen.jpg"
+              />
+            </div>
+            
             {previewImage ? (
               <div className="relative">
                 <img
                   src={previewImage}
                   alt="Vista previa"
                   className="w-full h-32 object-cover rounded-lg border border-slate-300"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '';
+                    setPreviewImage('');
+                    handleInputChange('foto', '');
+                  }}
                 />
                 <button
                   type="button"

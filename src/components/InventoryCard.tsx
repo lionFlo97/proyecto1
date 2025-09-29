@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import {
   Package,
   MapPin,
-  CreditCard as Edit3,
+  Edit3,
   Check,
   X,
   AlertTriangle,

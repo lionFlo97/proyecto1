@@ -22,7 +22,7 @@ import * as XLSX from 'xlsx';
 function App() {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState<'tecnico' | 'administrador' | null>(null);
+  const [userRole, setUserRole] = useState<'Tecnico' | 'administrador' | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);

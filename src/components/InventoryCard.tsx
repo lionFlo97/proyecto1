@@ -240,7 +240,7 @@ export function InventoryCard({
           </div>
         )}
 
-        {/* Botón de carrito solo para tecnicos */}
+        {/* Botón de carrito solo para Tecnicos */}
         {userRole === "tecnico" && (
           <button
             onClick={() => onAddToCart?.(item)}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, FileSpreadsheet, Eye, Settings, Trash2, LogOut, Download } from 'lucide-react';
+import { Plus, FileSpreadsheet, Eye, Settings, Trash2, LogOut } from 'lucide-react';
 import { Layout } from './components/Layout';
 import { InventoryCard } from './components/InventoryCard';
 import { EditItemModal } from './components/EditItemModal';
@@ -7,7 +7,6 @@ import { ImportExcelModal } from './components/ImportExcelModal';
 import { ClearAllModal } from './components/ClearAllModal';
 import { CriticalStockNotification } from './components/CriticalStockNotification';
 import { CategoryView } from './components/CategoryView';
-import { ViewerMode } from './components/ViewerMode';
 import { SearchBar } from './components/SearchBar';
 import { StatsGrid } from './components/StatsGrid';
 import { StockCriticalityCharts } from './components/StockCriticalityCharts';
@@ -15,9 +14,9 @@ import { InventoryItem, NewInventoryItem } from './types/inventory';
 import { AddItemModal } from './components/AddItemModal';
 import { AuthModal } from './components/AuthModal';
 import { inventoryApi } from './services/api';
-import { materialExitApi } from './services/materialExitApi';
 import { searchInventoryItem } from './utils/search';
 import * as XLSX from 'xlsx';
+import { CartModal } from './components/cartmodal/CartModal';   // 👈 Importamos el carrito
 
 function App() {
   const [items, setItems] = useState<InventoryItem[]>([]);
@@ -38,6 +37,10 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [stockFilter, setStockFilter] = useState<'all' | 'low' | 'critical' | 'zero'>('all');
   const [currentView, setCurrentView] = useState<'list' | 'categories'>('list');
+
+  // 👇 Estados del carrito
+  const [cartItems, setCartItems] = useState<InventoryItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
     if (userRole) {
@@ -60,8 +63,7 @@ function App() {
   const handleAddItem = async (newItem: NewInventoryItem) => {
     try {
       setIsAdding(true);
-      const addedItem = await inventoryApi.create(newItem);
-      // Reload the entire inventory to ensure consistency
+      await inventoryApi.create(newItem);
       await loadInventory();
       setIsModalOpen(false);
     } catch (error) {
@@ -170,7 +172,6 @@ function App() {
   const handleLogout = () => {
     setUserRole(null);
     setIsAuthModalOpen(true);
-    // Limpiar estados
     setItems([]);
     setSearchTerm('');
     setStockFilter('all');
@@ -178,7 +179,6 @@ function App() {
 
   const handleExportZeroStock = () => {
     const zeroStockItems = items.filter(item => item.stock === 0);
-    
     if (zeroStockItems.length === 0) {
       alert('No hay materiales con stock cero para exportar');
       return;
@@ -202,9 +202,20 @@ function App() {
     XLSX.writeFile(wb, `materiales_sin_stock_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
+  // 👇 Funciones del carrito
+  const handleAddToCart = (item: InventoryItem) => {
+    setCartItems(prev => {
+      if (prev.find(i => i.id === item.id)) return prev;
+      return [...prev, item];
+    });
+  };
+
+  const handleRemoveFromCart = (id: number) => {
+    setCartItems(prev => prev.filter(item => item.id !== id));
+  };
+
   const filteredItems = items.filter(item => {
     const matchesSearch = searchInventoryItem(item, searchTerm);
-    
     const puntoPedido = item.puntoPedido || 5;
     const criticalThreshold = Math.floor(puntoPedido / 2);
     const matchesFilter = 
@@ -216,7 +227,6 @@ function App() {
     return matchesSearch && matchesFilter;
   });
 
-  // Mostrar modal de autenticación si no hay usuario logueado
   if (!userRole) {
     return (
       <>
@@ -267,6 +277,14 @@ function App() {
             >
               <LogOut className="h-4 w-4" />
               <span>Cerrar Sesión</span>
+            </button>
+
+            {/* 👇 Botón del carrito */}
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors font-medium"
+            >
+              <span>🛒 Carrito ({cartItems.length})</span>
             </button>
             
             {isAdmin && (
@@ -359,7 +377,8 @@ function App() {
                 isUpdating={updatingItems.has(item.id)}
                 isDeleting={deletingItems.has(item.id)}
                 isViewerMode={!isAdmin}
-                userRole={userRole}   // 👈 NUEVO
+                userRole={userRole}
+                onAddToCart={handleAddToCart}   // 👈 NUEVO
               />
             ))}
           </div>
@@ -403,6 +422,14 @@ function App() {
             />
           </>
         )}
+
+        {/* 👇 Aquí renderizamos el modal del carrito */}
+        <CartModal
+          isOpen={isCartOpen}
+          onClose={() => setIsCartOpen(false)}
+          cartItems={cartItems}
+          onRemoveItem={handleRemoveFromCart}
+        />
       </div>
     </Layout>
   );

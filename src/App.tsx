@@ -162,7 +162,7 @@ function App() {
     }
   };
 
-  const handleLogin = (role: 'tecnico' | 'administrador') => {
+  const handleLogin = (role: 'Tecnico' | 'administrador') => {
     setUserRole(role);
     setIsAuthModalOpen(false);
   };

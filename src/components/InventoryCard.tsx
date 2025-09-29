@@ -1,5 +1,17 @@
-import React, { useState } from 'react';
-import { Package, MapPin, CreditCard as Edit3, Check, X, AlertTriangle, Image, Settings, Trash2, ArrowRight, ShoppingCart } from "lucide-react";
+import React, { useState } from "react";
+import {
+  Package,
+  MapPin,
+  CreditCard as Edit3,
+  Check,
+  X,
+  AlertTriangle,
+  Image,
+  Settings,
+  Trash2,
+  ArrowRight,
+  ShoppingCart,
+} from "lucide-react";
 import { InventoryItem } from "../types/inventory";
 
 interface InventoryCardProps {
@@ -11,17 +23,44 @@ interface InventoryCardProps {
   isUpdating: boolean;
   isDeleting?: boolean;
   isViewerMode?: boolean;
+  userRole?: "operario" | "administrador" | null; // 👈 nuevo
+  onAddToCart?: (item: InventoryItem) => void; // 👈 nuevo (callback desde App)
 }
 
-export function InventoryCard({ item, onUpdateStock, onEditItem, onDeleteItem, onReassignCategory, isUpdating, isDeleting = false, isViewerMode = false }: InventoryCardProps) {
+export function InventoryCard({
+  item,
+  onUpdateStock,
+  onEditItem,
+  onDeleteItem,
+  onReassignCategory,
+  isUpdating,
+  isDeleting = false,
+  isViewerMode = false,
+  userRole,
+  onAddToCart, // 👈 nuevo
+}: InventoryCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [newStock, setNewStock] = useState(item.stock);
 
   const getStockStatus = (stock: number) => {
     const puntoPedido = item.puntoPedido || 5;
-    if (stock <= Math.floor(puntoPedido / 2)) return { color: 'text-red-600', bg: 'bg-red-100', status: 'Crítico' };
-    if (stock <= puntoPedido) return { color: 'text-yellow-600', bg: 'bg-yellow-100', status: 'Bajo' };
-    return { color: 'text-green-600', bg: 'bg-green-100', status: 'Normal' };
+    if (stock <= Math.floor(puntoPedido / 2))
+      return {
+        color: "text-red-600",
+        bg: "bg-red-100",
+        status: "Crítico",
+      };
+    if (stock <= puntoPedido)
+      return {
+        color: "text-yellow-600",
+        bg: "bg-yellow-100",
+        status: "Bajo",
+      };
+    return {
+      color: "text-green-600",
+      bg: "bg-green-100",
+      status: "Normal",
+    };
   };
 
   const stockStatus = getStockStatus(item.stock);
@@ -48,39 +87,59 @@ export function InventoryCard({ item, onUpdateStock, onEditItem, onDeleteItem, o
             className="w-full h-32 object-cover rounded-lg"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
+              target.style.display = "none";
             }}
           />
         </div>
       )}
-      
+
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-start space-x-3">
-          <div className={`p-2 rounded-lg ${item.tipo === 'ERSA' ? 'bg-red-100' : 'bg-blue-100'}`}>
+          <div
+            className={`p-2 rounded-lg ${
+              item.tipo === "ERSA" ? "bg-red-100" : "bg-blue-100"
+            }`}
+          >
             {item.foto ? (
-              <Image className={`h-5 w-5 ${item.tipo === 'ERSA' ? 'text-red-600' : 'text-blue-600'}`} />
+              <Image
+                className={`h-5 w-5 ${
+                  item.tipo === "ERSA" ? "text-red-600" : "text-blue-600"
+                }`}
+              />
             ) : (
-              <Package className={`h-5 w-5 ${item.tipo === 'ERSA' ? 'text-red-600' : 'text-blue-600'}`} />
+              <Package
+                className={`h-5 w-5 ${
+                  item.tipo === "ERSA" ? "text-red-600" : "text-blue-600"
+                }`}
+              />
             )}
           </div>
           <div>
             <div className="flex items-center space-x-2 mb-1">
-              <span className={`px-2 py-1 text-xs font-medium rounded ${
-                item.tipo === 'ERSA' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
-              }`}>
+              <span
+                className={`px-2 py-1 text-xs font-medium rounded ${
+                  item.tipo === "ERSA"
+                    ? "bg-red-100 text-red-700"
+                    : "bg-blue-100 text-blue-700"
+                }`}
+              >
                 {item.tipo}
               </span>
               <span className="text-xs text-slate-500">#{item.codigo}</span>
             </div>
-            <h3 className="text-lg font-semibold text-slate-900">{item.nombre}</h3>
+            <h3 className="text-lg font-semibold text-slate-900">
+              {item.nombre}
+            </h3>
             <div className="flex items-center space-x-1 text-sm text-slate-500 mt-1">
               <MapPin className="h-4 w-4" />
               <span>{item.ubicacion}</span>
             </div>
           </div>
         </div>
-        
-        <div className={`px-3 py-1 rounded-full text-sm font-medium ${stockStatus.bg} ${stockStatus.color}`}>
+
+        <div
+          className={`px-3 py-1 rounded-full text-sm font-medium ${stockStatus.bg} ${stockStatus.color}`}
+        >
           {stockStatus.status}
         </div>
       </div>
@@ -94,7 +153,9 @@ export function InventoryCard({ item, onUpdateStock, onEditItem, onDeleteItem, o
                 <input
                   type="number"
                   value={newStock}
-                  onChange={(e) => setNewStock(parseInt(e.target.value) || 0)}
+                  onChange={(e) =>
+                    setNewStock(parseInt(e.target.value) || 0)
+                  }
                   className="w-20 px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   min="0"
                 />
@@ -115,12 +176,14 @@ export function InventoryCard({ item, onUpdateStock, onEditItem, onDeleteItem, o
               </div>
             ) : (
               <div className="flex items-center space-x-2 mt-1">
-                <p className="text-2xl font-bold text-slate-900">{item.stock}</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {item.stock}
+                </p>
                 <span className="text-sm text-slate-500">{item.unidad}</span>
               </div>
             )}
           </div>
-          
+
           {item.stock <= (item.puntoPedido || 5) && (
             <div className="flex items-center space-x-1 text-red-600">
               <AlertTriangle className="h-4 w-4" />
@@ -129,9 +192,10 @@ export function InventoryCard({ item, onUpdateStock, onEditItem, onDeleteItem, o
           )}
         </div>
 
-        {!isViewerMode && (
+        {/* Botones para admin */}
+        {!isViewerMode && userRole === "administrador" && (
           <div className="flex space-x-1">
-            {!isEditing && !isViewerMode && (
+            {!isEditing && (
               <button
                 onClick={() => setIsEditing(true)}
                 className="flex items-center space-x-1 px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors"
@@ -140,7 +204,7 @@ export function InventoryCard({ item, onUpdateStock, onEditItem, onDeleteItem, o
                 <span>Stock</span>
               </button>
             )}
-            {onEditItem && !isViewerMode && (
+            {onEditItem && (
               <button
                 onClick={() => onEditItem(item)}
                 className="flex items-center space-x-1 px-2 py-1 text-xs text-green-600 hover:bg-green-50 rounded transition-colors"
@@ -149,7 +213,7 @@ export function InventoryCard({ item, onUpdateStock, onEditItem, onDeleteItem, o
                 <span>Editar</span>
               </button>
             )}
-            {onReassignCategory && !isViewerMode && (
+            {onReassignCategory && (
               <button
                 onClick={() => onReassignCategory(item)}
                 className="flex items-center space-x-1 px-2 py-1 text-xs text-purple-600 hover:bg-purple-50 rounded transition-colors"
@@ -159,7 +223,7 @@ export function InventoryCard({ item, onUpdateStock, onEditItem, onDeleteItem, o
                 <span>Categoría</span>
               </button>
             )}
-            {onDeleteItem && !isViewerMode && (
+            {onDeleteItem && (
               <button
                 onClick={() => onDeleteItem(item.id)}
                 disabled={isDeleting}
@@ -170,25 +234,24 @@ export function InventoryCard({ item, onUpdateStock, onEditItem, onDeleteItem, o
                 ) : (
                   <Trash2 className="h-4 w-4" />
                 )}
-                <span>{isDeleting ? 'Eliminando...' : 'Eliminar'}</span>
+                <span>{isDeleting ? "Eliminando..." : "Eliminar"}</span>
               </button>
             )}
-            
-            {/* Botón de carrito siempre visible */}
-            <button
-              onClick={() => {
-                // Aquí se implementa la lógica del carrito
-                console.log('Agregar al carrito:', item);
-              }}
-              className="flex items-center space-x-1 px-2 py-1 text-xs text-orange-600 hover:bg-orange-50 rounded transition-colors"
-            >
-              <ShoppingCart className="h-4 w-4" />
-              <span>Carrito</span>
-            </button>
           </div>
         )}
 
-        {isViewerMode && (
+        {/* Botón de carrito solo para operarios */}
+        {userRole === "operario" && (
+          <button
+            onClick={() => onAddToCart?.(item)}
+            className="flex items-center space-x-1 px-2 py-1 text-xs text-orange-600 hover:bg-orange-50 rounded transition-colors"
+          >
+            <ShoppingCart className="h-4 w-4" />
+            <span>Carrito</span>
+          </button>
+        )}
+
+        {isViewerMode && userRole !== "operario" && (
           <button
             disabled
             className="flex items-center space-x-1 px-3 py-2 text-sm text-slate-400 bg-slate-50 rounded-lg cursor-not-allowed"

@@ -257,7 +257,7 @@ function App() {
           <div>
             <h2 className="text-2xl font-bold text-slate-900">Inventario Industrial</h2>
             <p className="text-slate-600">
-              Gestión completa de materiales y suministros - {userRole === 'administrador' ? 'Administrador' : 'tecnico'}
+              Gestión completa de materiales y suministros - {userRole === 'administrador' ? 'Administrador' : 'Tecnico'}
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 items-end">

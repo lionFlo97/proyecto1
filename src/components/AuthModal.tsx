@@ -80,7 +80,7 @@ export function AuthModal({ isOpen, onClose, onLogin }: AuthModalProps) {
               >
                 <User className="h-5 w-5 text-blue-600" />
                 <div className="text-left">
-                  <div className="font-medium text-slate-900">tecnico</div>
+                  <div className="font-medium text-slate-900">Tecnico</div>
                   <div className="text-sm text-slate-600">Visualizar y registrar salidas</div>
                 </div>
               </button>

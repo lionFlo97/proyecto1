@@ -22,7 +22,7 @@ export function AuthModal({ isOpen, onClose, onLogin }: AuthModalProps) {
     await new Promise(resolve => setTimeout(resolve, 500));
 
     const passwords = {
-      tecnico: 'tecnico123',
+      Tecnico: 'Tecnico123',
       administrador: 'admin123'
     };
 

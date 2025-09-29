@@ -251,7 +251,7 @@ export function InventoryCard({
           </button>
         )}
 
-        {isViewerMode && userRole !== "operario" && (
+        {isViewerMode && userRole !== "tecnico" && (
           <button
             disabled
             className="flex items-center space-x-1 px-3 py-2 text-sm text-slate-400 bg-slate-50 rounded-lg cursor-not-allowed"

@@ -71,7 +71,7 @@ export function AuthModal({ isOpen, onClose, onLogin }: AuthModalProps) {
             <div className="grid grid-cols-1 gap-3">
               <button
                 type="button"
-                onClick={() => setSelectedRole('tecnico')}
+                onClick={() => setSelectedRole('Tecnico')}
                 className={`flex items-center space-x-3 p-4 border-2 rounded-lg transition-colors ${
                   selectedRole === 'tecnico'
                     ? 'border-blue-500 bg-blue-50'

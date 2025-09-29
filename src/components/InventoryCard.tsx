@@ -23,7 +23,7 @@ interface InventoryCardProps {
   isUpdating: boolean;
   isDeleting?: boolean;
   isViewerMode?: boolean;
-  userRole?: "tecnico" | "administrador" | null; // Roles para admin y tecnico
+  userRole?: "Tecnico" | "administrador" | null; // Roles para admin y TecnicoS
   onAddToCart?: (item: InventoryItem) => void; //  (callback desde App)
 }
 

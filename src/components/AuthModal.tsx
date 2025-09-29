@@ -73,7 +73,7 @@ export function AuthModal({ isOpen, onClose, onLogin }: AuthModalProps) {
                 type="button"
                 onClick={() => setSelectedRole('Tecnico')}
                 className={`flex items-center space-x-3 p-4 border-2 rounded-lg transition-colors ${
-                  selectedRole === 'tecnico'
+                  selectedRole === 'Tecnico'
                     ? 'border-blue-500 bg-blue-50'
                     : 'border-slate-200 hover:border-slate-300'
                 }`}

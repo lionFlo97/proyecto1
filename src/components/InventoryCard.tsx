@@ -1,266 +1,119 @@
 import React, { useState } from "react";
-import {
-  Package,
-  MapPin,
-  CreditCard as Edit3,
-  Check,
-  X,
-  AlertTriangle,
-  Image,
-  Settings,
-  Trash2,
-  ArrowRight,
-  ShoppingCart,
-} from "lucide-react";
-import { InventoryItem } from "../types/inventory";
+import { InventoryCard } from "./components/InventoryCard";
+import { InventoryItem } from "./types/inventory";
 
-interface InventoryCardProps {
-  item: InventoryItem;
-  onUpdateStock: (id: number, stock: number) => void;
-  onEditItem?: (item: InventoryItem) => void;
-  onDeleteItem?: (id: number) => void;
-  onReassignCategory?: (item: InventoryItem) => void;
-  isUpdating: boolean;
-  isDeleting?: boolean;
-  isViewerMode?: boolean;
-  userRole?: "Tecnico" | "administrador" | null; // Roles para admin y Tecnicos
-  onAddToCart?: (item: InventoryItem) => void; //  (callback desde App)
-}
+export default function App() {
+  // 🔹 Lista de ejemplo de inventario (reemplaza con tu API/estado real)
+  const [inventory, setInventory] = useState<InventoryItem[]>([
+    {
+      id: 1,
+      nombre: "Cable HDMI",
+      stock: 10,
+      unidad: "pcs",
+      tipo: "ERSA",
+      codigo: "HDMI123",
+      ubicacion: "Bodega 1",
+      puntoPedido: 5,
+      foto: "",
+    },
+    {
+      id: 2,
+      nombre: "Laptop Dell",
+      stock: 3,
+      unidad: "pcs",
+      tipo: "Equipo",
+      codigo: "LAP456",
+      ubicacion: "Oficina 2",
+      puntoPedido: 2,
+      foto: "",
+    },
+  ]);
 
-export function InventoryCard({
-  item,
-  onUpdateStock,
-  onEditItem,
-  onDeleteItem,
-  onReassignCategory,
-  isUpdating,
-  isDeleting = false,
-  isViewerMode = false,
-  userRole,
-  onAddToCart, // 👈 nuevo
-}: InventoryCardProps) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [newStock, setNewStock] = useState(item.stock);
+  // 🔹 Simulación de rol (puede venir de login)
+  const [userRole, setUserRole] = useState<"Tecnico" | "administrador" | null>("Tecnico");
 
-  const getStockStatus = (stock: number) => {
-    const puntoPedido = item.puntoPedido || 5;
-    if (stock <= Math.floor(puntoPedido / 2))
-      return {
-        color: "text-red-600",
-        bg: "bg-red-100",
-        status: "Crítico",
-      };
-    if (stock <= puntoPedido)
-      return {
-        color: "text-yellow-600",
-        bg: "bg-yellow-100",
-        status: "Bajo",
-      };
-    return {
-      color: "text-green-600",
-      bg: "bg-green-100",
-      status: "Normal",
-    };
+  // 🔹 Estado del carrito (solo técnicos)
+  const [cart, setCart] = useState<InventoryItem[]>([]);
+
+  // Actualizar stock
+  const handleUpdateStock = (id: number, newStock: number) => {
+    setInventory((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, stock: newStock } : item))
+    );
   };
 
-  const stockStatus = getStockStatus(item.stock);
-
-  const handleSaveStock = () => {
-    if (newStock !== item.stock) {
-      onUpdateStock(item.id, newStock);
-    }
-    setIsEditing(false);
+  // Editar item (solo admin)
+  const handleEditItem = (item: InventoryItem) => {
+    console.log("Editar:", item);
   };
 
-  const handleCancelEdit = () => {
-    setNewStock(item.stock);
-    setIsEditing(false);
+  // Eliminar item (solo admin)
+  const handleDeleteItem = (id: number) => {
+    setInventory((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  // 🔹 Agregar al carrito (solo técnicos)
+  const handleAddToCart = (item: InventoryItem) => {
+    setCart((prev) => {
+      if (prev.find((i) => i.id === item.id)) return prev; // evitar duplicados
+      return [...prev, item];
+    });
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow duration-200">
-      {item.foto && (
-        <div className="mb-4">
-          <img
-            src={item.foto}
-            alt={item.nombre}
-            className="w-full h-32 object-cover rounded-lg"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.style.display = "none";
-            }}
-          />
-        </div>
-      )}
+    <div className="p-6 space-y-6">
+      <h1 className="text-2xl font-bold">📦 Inventario</h1>
 
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-start space-x-3">
-          <div
-            className={`p-2 rounded-lg ${
-              item.tipo === "ERSA" ? "bg-red-100" : "bg-blue-100"
-            }`}
-          >
-            {item.foto ? (
-              <Image
-                className={`h-5 w-5 ${
-                  item.tipo === "ERSA" ? "text-red-600" : "text-blue-600"
-                }`}
-              />
-            ) : (
-              <Package
-                className={`h-5 w-5 ${
-                  item.tipo === "ERSA" ? "text-red-600" : "text-blue-600"
-                }`}
-              />
-            )}
-          </div>
-          <div>
-            <div className="flex items-center space-x-2 mb-1">
-              <span
-                className={`px-2 py-1 text-xs font-medium rounded ${
-                  item.tipo === "ERSA"
-                    ? "bg-red-100 text-red-700"
-                    : "bg-blue-100 text-blue-700"
-                }`}
-              >
-                {item.tipo}
-              </span>
-              <span className="text-xs text-slate-500">#{item.codigo}</span>
-            </div>
-            <h3 className="text-lg font-semibold text-slate-900">
-              {item.nombre}
-            </h3>
-            <div className="flex items-center space-x-1 text-sm text-slate-500 mt-1">
-              <MapPin className="h-4 w-4" />
-              <span>{item.ubicacion}</span>
-            </div>
-          </div>
-        </div>
-
-        <div
-          className={`px-3 py-1 rounded-full text-sm font-medium ${stockStatus.bg} ${stockStatus.color}`}
+      {/* Selector de rol */}
+      <div className="flex space-x-4 mb-6">
+        <button
+          onClick={() => setUserRole("administrador")}
+          className={`px-4 py-2 rounded ${userRole === "administrador" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
         >
-          {stockStatus.status}
-        </div>
+          Administrador
+        </button>
+        <button
+          onClick={() => setUserRole("Tecnico")}
+          className={`px-4 py-2 rounded ${userRole === "Tecnico" ? "bg-orange-600 text-white" : "bg-gray-200"}`}
+        >
+          Técnico
+        </button>
       </div>
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <div>
-            <p className="text-sm text-slate-500">Stock disponible</p>
-            {isEditing ? (
-              <div className="flex items-center space-x-2 mt-1">
-                <input
-                  type="number"
-                  value={newStock}
-                  onChange={(e) =>
-                    setNewStock(parseInt(e.target.value) || 0)
-                  }
-                  className="w-20 px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  min="0"
-                />
-                <button
-                  onClick={handleSaveStock}
-                  disabled={isUpdating}
-                  className="p-1 text-green-600 hover:bg-green-100 rounded transition-colors"
-                >
-                  <Check className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={handleCancelEdit}
-                  disabled={isUpdating}
-                  className="p-1 text-red-600 hover:bg-red-100 rounded transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-2 mt-1">
-                <p className="text-2xl font-bold text-slate-900">
-                  {item.stock}
-                </p>
-                <span className="text-sm text-slate-500">{item.unidad}</span>
-              </div>
-            )}
-          </div>
+      {/* Lista de inventario */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {inventory.map((item) => (
+          <InventoryCard
+            key={item.id}
+            item={item}
+            onUpdateStock={handleUpdateStock}
+            onEditItem={userRole === "administrador" ? handleEditItem : undefined}
+            onDeleteItem={userRole === "administrador" ? handleDeleteItem : undefined}
+            isUpdating={false}
+            isDeleting={false}
+            userRole={userRole}
+            onAddToCart={handleAddToCart} // 👈 conexión
+          />
+        ))}
+      </div>
 
-          {item.stock <= (item.puntoPedido || 5) && (
-            <div className="flex items-center space-x-1 text-red-600">
-              <AlertTriangle className="h-4 w-4" />
-              <span className="text-sm font-medium">Reabastecer</span>
-            </div>
+      {/* Carrito visible solo si es Técnico */}
+      {userRole === "Tecnico" && (
+        <div className="mt-8 p-4 bg-orange-100 rounded-lg">
+          <h2 className="text-xl font-bold mb-2">🛒 Carrito</h2>
+          {cart.length === 0 ? (
+            <p className="text-gray-600">Tu carrito está vacío</p>
+          ) : (
+            <ul className="list-disc pl-6 space-y-1">
+              {cart.map((item) => (
+                <li key={item.id} className="text-gray-800">
+                  {item.nombre} - {item.stock} {item.unidad}
+                </li>
+              ))}
+            </ul>
           )}
         </div>
-
-        {/* Botones para admin */}
-        {!isViewerMode && userRole === "administrador" && (
-          <div className="flex space-x-1">
-            {!isEditing && (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="flex items-center space-x-1 px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors"
-              >
-                <Edit3 className="h-4 w-4" />
-                <span>Stock</span>
-              </button>
-            )}
-            {onEditItem && (
-              <button
-                onClick={() => onEditItem(item)}
-                className="flex items-center space-x-1 px-2 py-1 text-xs text-green-600 hover:bg-green-50 rounded transition-colors"
-              >
-                <Settings className="h-4 w-4" />
-                <span>Editar</span>
-              </button>
-            )}
-            {onReassignCategory && (
-              <button
-                onClick={() => onReassignCategory(item)}
-                className="flex items-center space-x-1 px-2 py-1 text-xs text-purple-600 hover:bg-purple-50 rounded transition-colors"
-                title="Cambiar categoría"
-              >
-                <ArrowRight className="h-4 w-4" />
-                <span>Categoría</span>
-              </button>
-            )}
-            {onDeleteItem && (
-              <button
-                onClick={() => onDeleteItem(item.id)}
-                disabled={isDeleting}
-                className="flex items-center space-x-1 px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
-              >
-                {isDeleting ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
-                ) : (
-                  <Trash2 className="h-4 w-4" />
-                )}
-                <span>{isDeleting ? "Eliminando..." : "Eliminar"}</span>
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Botón de carrito solo para Tecnicos */}
-        {userRole === "Tecnico" && (
-          <button
-            onClick={() => onAddToCart?.(item)}
-            className="flex items-center space-x-1 px-2 py-1 text-xs text-orange-600 hover:bg-orange-50 rounded transition-colors"
-          >
-            <ShoppingCart className="h-4 w-4" />
-            <span>Carrito</span>
-          </button>
-        )}
-
-        {isViewerMode && userRole !== "Tecnico" && (
-          <button
-            disabled
-            className="flex items-center space-x-1 px-3 py-2 text-sm text-slate-400 bg-slate-50 rounded-lg cursor-not-allowed"
-          >
-            <Package className="h-4 w-4" />
-            <span>Solo lectura</span>
-          </button>
-        )}
-      </div>
+      )}
     </div>
   );
 }

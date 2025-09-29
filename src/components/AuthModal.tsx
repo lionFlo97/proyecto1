@@ -4,7 +4,7 @@ import { X, Lock, User, Shield } from 'lucide-react';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin: (role: 'tecnico' | 'administrador') => void;
+  onLogin: (role: 'Tecnico' | 'administrador') => void;
 }
 
 export function AuthModal({ isOpen, onClose, onLogin }: AuthModalProps) {

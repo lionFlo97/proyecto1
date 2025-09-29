@@ -177,7 +177,7 @@ export function InventoryCard({ item, onUpdateStock, onEditItem, onDeleteItem, o
             {/* Botón de carrito siempre visible */}
             <button
               onClick={() => {
-                // Aquí implementarías la lógica del carrito
+                // Aquí se implementa la lógica del carrito
                 console.log('Agregar al carrito:', item);
               }}
               className="flex items-center space-x-1 px-2 py-1 text-xs text-orange-600 hover:bg-orange-50 rounded transition-colors"

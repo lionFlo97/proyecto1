@@ -359,6 +359,7 @@ function App() {
                 isUpdating={updatingItems.has(item.id)}
                 isDeleting={deletingItems.has(item.id)}
                 isViewerMode={!isAdmin}
+                userRole={userRole}   // 👈 NUEVO
               />
             ))}
           </div>

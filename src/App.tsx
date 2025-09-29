@@ -16,7 +16,7 @@ import { AuthModal } from './components/AuthModal';
 import { inventoryApi } from './services/api';
 import { searchInventoryItem } from './utils/search';
 import * as XLSX from 'xlsx';
-import { CartModal } from './components/cartmodal/CartModal';   // 👈 Importamos el carrito
+import { CartModal } from "./components/CartModal";
 
 function App() {
   const [items, setItems] = useState<InventoryItem[]>([]);

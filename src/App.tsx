@@ -22,7 +22,7 @@ import * as XLSX from 'xlsx';
 function App() {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState<'operario' | 'administrador' | null>(null);
+  const [userRole, setUserRole] = useState<'tecnico' | 'administrador' | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -162,7 +162,7 @@ function App() {
     }
   };
 
-  const handleLogin = (role: 'operario' | 'administrador') => {
+  const handleLogin = (role: 'tecnico' | 'administrador') => {
     setUserRole(role);
     setIsAuthModalOpen(false);
   };
@@ -257,7 +257,7 @@ function App() {
           <div>
             <h2 className="text-2xl font-bold text-slate-900">Inventario Industrial</h2>
             <p className="text-slate-600">
-              Gestión completa de materiales y suministros - {userRole === 'administrador' ? 'Administrador' : 'Tecnico'}
+              Gestión completa de materiales y suministros - {userRole === 'administrador' ? 'Administrador' : 'tecnico'}
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 items-end">

@@ -8,8 +8,8 @@ interface StatsGridProps {
 
 export function StatsGrid({ items }: StatsGridProps) {
   const totalItems = items.length;
-  const totalStock = items.reduce((sum, item) => sum + item.stock, 0);
   const criticalItems = items.filter(item => item.stock <= (item.puntoPedido || 5)).length;
+  const zeroStockItems = items.filter(item => item.stock === 0).length;
   const uniqueLocations = new Set(items.map(item => item.ubicacion)).size;
 
   const stats = [
@@ -21,18 +21,18 @@ export function StatsGrid({ items }: StatsGridProps) {
       bg: 'bg-blue-100',
     },
     {
-      label: 'Stock Total',
-      value: totalStock.toLocaleString(),
-      icon: TrendingUp,
-      color: 'text-green-600',
-      bg: 'bg-green-100',
-    },
-    {
       label: 'Stock Crítico',
       value: criticalItems,
-      icon: AlertTriangle,
+      icon: TrendingUp,
       color: 'text-red-600',
       bg: 'bg-red-100',
+    },
+    {
+      label: 'Sin Stock',
+      value: zeroStockItems,
+      icon: AlertTriangle,
+      color: 'text-orange-600',
+      bg: 'bg-orange-100',
     },
     {
       label: 'Ubicaciones',

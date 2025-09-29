@@ -1,13 +1,16 @@
 import React from 'react';
+import { useState } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { InventoryItem } from '../types/inventory';
-import { AlertTriangle, TrendingUp, Package } from 'lucide-react';
+import { AlertTriangle, TrendingUp, Package, Filter, X } from 'lucide-react';
 
 interface StockCriticalityChartsProps {
   items: InventoryItem[];
 }
 
 export function StockCriticalityCharts({ items }: StockCriticalityChartsProps) {
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
   // Calcular estadísticas de criticidad
   const criticalityStats = items.reduce((acc, item) => {
     const puntoPedido = item.puntoPedido || 5;
@@ -53,6 +56,26 @@ export function StockCriticalityCharts({ items }: StockCriticalityChartsProps) {
   }, {} as Record<string, { category: string; normal: number; low: number; critical: number }>);
 
   const barData = Object.values(categoryStats).slice(0, 8); // Mostrar solo las primeras 8 categorías
+
+  // Filtrar datos por categorías seleccionadas
+  const filteredBarData = selectedCategories.length > 0 
+    ? barData.filter(item => selectedCategories.includes(item.category))
+    : barData;
+
+  // Obtener todas las categorías disponibles
+  const allCategories = Object.keys(categoryStats);
+
+  const toggleCategory = (category: string) => {
+    setSelectedCategories(prev => 
+      prev.includes(category)
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    );
+  };
+
+  const clearFilters = () => {
+    setSelectedCategories([]);
+  };
 
   const COLORS = ['#10b981', '#f59e0b', '#ef4444'];
 
@@ -139,6 +162,7 @@ export function StockCriticalityCharts({ items }: StockCriticalityChartsProps) {
         
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={barData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+          <BarChart data={filteredBarData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
               dataKey="category" 
@@ -155,6 +179,45 @@ export function StockCriticalityCharts({ items }: StockCriticalityChartsProps) {
             <Bar dataKey="critical" stackId="a" fill="#ef4444" name="Crítico" />
           </BarChart>
         </ResponsiveContainer>
+        
+        {/* Filtros de categorías */}
+        <div className="mt-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center space-x-2">
+              <Filter className="h-4 w-4 text-slate-600" />
+              <span className="text-sm font-medium text-slate-700">Filtrar categorías:</span>
+            </div>
+            {selectedCategories.length > 0 && (
+              <button
+                onClick={clearFilters}
+                className="flex items-center space-x-1 px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition-colors"
+              >
+                <X className="h-3 w-3" />
+                <span>Limpiar filtros</span>
+              </button>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {allCategories.map(category => (
+              <button
+                key={category}
+                onClick={() => toggleCategory(category)}
+                className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                  selectedCategories.includes(category)
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+          {selectedCategories.length > 0 && (
+            <p className="text-xs text-slate-500 mt-2">
+              Mostrando {selectedCategories.length} de {allCategories.length} categorías
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Indicadores de Alerta */}

@@ -15,6 +15,8 @@ export function EditItemModal({ isOpen, onClose, onSave, item, isSaving }: EditI
   const [errors, setErrors] = useState<Partial<InventoryItem>>({});
   const [previewImage, setPreviewImage] = useState<string>(item.foto || '');
   const [isUploading, setIsUploading] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string>('');
+  const [imageSource, setImageSource] = useState<'upload' | 'url'>('upload');
 
   const validateForm = () => {
     const newErrors: Partial<InventoryItem> = {};
@@ -76,6 +78,17 @@ export function EditItemModal({ isOpen, onClose, onSave, item, isSaving }: EditI
   const removeImage = () => {
     setPreviewImage('');
     handleInputChange('foto', '');
+  };
+
+  const handleUrlImage = () => {
+    if (imageUrl.trim()) {
+      setPreviewImage(imageUrl);
+      handleInputChange('foto', imageUrl);
+    }
+  };
+
+  const isValidImageUrl = (url: string) => {
+    return /\.(jpg|jpeg|png|gif|webp)$/i.test(url) || url.includes('imgur') || url.includes('cloudinary');
   };
 
   if (!isOpen) return null;
@@ -255,6 +268,34 @@ export function EditItemModal({ isOpen, onClose, onSave, item, isSaving }: EditI
               Foto del Material (Opcional)
             </label>
             
+            {/* Selector de fuente de imagen */}
+            <div className="mb-3">
+              <div className="flex space-x-4">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="imageSource"
+                    value="upload"
+                    checked={imageSource === 'upload'}
+                    onChange={(e) => setImageSource(e.target.value as 'upload' | 'url')}
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-slate-700">Subir archivo</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="imageSource"
+                    value="url"
+                    checked={imageSource === 'url'}
+                    onChange={(e) => setImageSource(e.target.value as 'upload' | 'url')}
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-slate-700">URL de internet</span>
+                </label>
+              </div>
+            </div>
+            
             {previewImage ? (
               <div className="relative">
                 <img
@@ -271,29 +312,56 @@ export function EditItemModal({ isOpen, onClose, onSave, item, isSaving }: EditI
                 </button>
               </div>
             ) : (
-              <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-slate-400 transition-colors">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  id="photo-upload-edit"
-                />
-                <label
-                  htmlFor="photo-upload-edit"
-                  className="cursor-pointer flex flex-col items-center space-y-2"
-                >
-                  {isUploading ? (
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  ) : (
-                    <Upload className="h-8 w-8 text-slate-400" />
-                  )}
-                  <span className="text-sm text-slate-600">
-                    {isUploading ? 'Cargando...' : 'Haz clic para subir una foto'}
-                  </span>
-                  <span className="text-xs text-slate-500">PNG, JPG hasta 10MB</span>
-                </label>
-              </div>
+              <>
+                {imageSource === 'upload' ? (
+                  <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-slate-400 transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      id="photo-upload-edit"
+                    />
+                    <label
+                      htmlFor="photo-upload-edit"
+                      className="cursor-pointer flex flex-col items-center space-y-2"
+                    >
+                      {isUploading ? (
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      ) : (
+                        <Upload className="h-8 w-8 text-slate-400" />
+                      )}
+                      <span className="text-sm text-slate-600">
+                        {isUploading ? 'Cargando...' : 'Haz clic para subir una foto'}
+                      </span>
+                      <span className="text-xs text-slate-500">PNG, JPG hasta 10MB</span>
+                    </label>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex space-x-2">
+                      <input
+                        type="url"
+                        value={imageUrl}
+                        onChange={(e) => setImageUrl(e.target.value)}
+                        placeholder="https://ejemplo.com/imagen.jpg"
+                        className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleUrlImage}
+                        disabled={!imageUrl.trim() || !isValidImageUrl(imageUrl)}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm rounded-lg transition-colors"
+                      >
+                        Cargar
+                      </button>
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      Ingresa la URL completa de una imagen (jpg, png, gif, webp)
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </div>
 

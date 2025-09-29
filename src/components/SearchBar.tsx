@@ -4,11 +4,12 @@ import { Search, Filter, Zap } from 'lucide-react';
 interface SearchBarProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
-  stockFilter: 'all' | 'low' | 'critical';
-  onFilterChange: (filter: 'all' | 'low' | 'critical') => void;
+  stockFilter: 'all' | 'low' | 'critical' | 'zero';
+  onFilterChange: (filter: 'all' | 'low' | 'critical' | 'zero') => void;
+  onExportZeroStock?: () => void;
 }
 
-export function SearchBar({ searchTerm, onSearchChange, stockFilter, onFilterChange }: SearchBarProps) {
+export function SearchBar({ searchTerm, onSearchChange, stockFilter, onFilterChange, onExportZeroStock }: SearchBarProps) {
   return (
     <div className="flex flex-col sm:flex-row gap-4">
       <div className="relative flex-1">
@@ -27,7 +28,7 @@ export function SearchBar({ searchTerm, onSearchChange, stockFilter, onFilterCha
         )}
       </div>
       
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-2 flex-wrap gap-2">
         <Filter className="h-4 w-4 text-slate-600" />
         <select
           value={stockFilter}
@@ -37,7 +38,18 @@ export function SearchBar({ searchTerm, onSearchChange, stockFilter, onFilterCha
           <option value="all">Todos los niveles</option>
           <option value="low">Stock bajo (≤ Punto Pedido)</option>
           <option value="critical">Stock crítico (≤ 50% Punto Pedido)</option>
+          <option value="zero">Sin stock (0)</option>
         </select>
+        
+        {stockFilter === 'zero' && onExportZeroStock && (
+          <button
+            onClick={onExportZeroStock}
+            className="px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm rounded-lg transition-colors flex items-center space-x-1"
+          >
+            <span>📊</span>
+            <span>Exportar Excel</span>
+          </button>
+        )}
       </div>
     </div>
   );

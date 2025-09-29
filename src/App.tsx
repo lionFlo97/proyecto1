@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, FileSpreadsheet, Eye, Settings, Trash2 } from 'lucide-react';
+import { Plus, FileSpreadsheet, Eye, Settings, Trash2, LogOut, Download } from 'lucide-react';
 import { Layout } from './components/Layout';
 import { InventoryCard } from './components/InventoryCard';
 import { EditItemModal } from './components/EditItemModal';
@@ -13,13 +13,17 @@ import { StatsGrid } from './components/StatsGrid';
 import { StockCriticalityCharts } from './components/StockCriticalityCharts';
 import { InventoryItem, NewInventoryItem } from './types/inventory';
 import { AddItemModal } from './components/AddItemModal';
+import { AuthModal } from './components/AuthModal';
 import { inventoryApi } from './services/api';
+import { materialExitApi } from './services/materialExitApi';
 import { searchInventoryItem } from './utils/search';
+import * as XLSX from 'xlsx';
 
 function App() {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<'editor' | 'viewer'>('editor');
+  const [userRole, setUserRole] = useState<'operario' | 'administrador' | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -32,12 +36,14 @@ function App() {
   const [deletingItems, setDeletingItems] = useState<Set<number>>(new Set());
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [stockFilter, setStockFilter] = useState<'all' | 'low' | 'critical'>('all');
+  const [stockFilter, setStockFilter] = useState<'all' | 'low' | 'critical' | 'zero'>('all');
   const [currentView, setCurrentView] = useState<'list' | 'categories'>('list');
 
   useEffect(() => {
-    loadInventory();
-  }, []);
+    if (userRole) {
+      loadInventory();
+    }
+  }, [userRole]);
 
   const loadInventory = async () => {
     try {
@@ -156,6 +162,46 @@ function App() {
     }
   };
 
+  const handleLogin = (role: 'operario' | 'administrador') => {
+    setUserRole(role);
+    setIsAuthModalOpen(false);
+  };
+
+  const handleLogout = () => {
+    setUserRole(null);
+    setIsAuthModalOpen(true);
+    // Limpiar estados
+    setItems([]);
+    setSearchTerm('');
+    setStockFilter('all');
+  };
+
+  const handleExportZeroStock = () => {
+    const zeroStockItems = items.filter(item => item.stock === 0);
+    
+    if (zeroStockItems.length === 0) {
+      alert('No hay materiales con stock cero para exportar');
+      return;
+    }
+
+    const exportData = zeroStockItems.map(item => ({
+      'Tipo': item.tipo,
+      'Nombre': item.nombre,
+      'Código': item.codigo,
+      'Ubicación': item.ubicacion,
+      'Stock': item.stock,
+      'Unidad': item.unidad,
+      'Punto Pedido': item.puntoPedido || 5,
+      'Punto Máximo': item.puntoMaximo || 0,
+      'Categoría': item.categoria || 'Sin categoría'
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Materiales Sin Stock');
+    XLSX.writeFile(wb, `materiales_sin_stock_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
   const filteredItems = items.filter(item => {
     const matchesSearch = searchInventoryItem(item, searchTerm);
     
@@ -163,11 +209,33 @@ function App() {
     const criticalThreshold = Math.floor(puntoPedido / 2);
     const matchesFilter = 
       stockFilter === 'all' ||
-      (stockFilter === 'low' && item.stock <= puntoPedido && item.stock > criticalThreshold) ||
-      (stockFilter === 'critical' && item.stock <= criticalThreshold);
+      (stockFilter === 'low' && item.stock <= puntoPedido && item.stock > criticalThreshold && item.stock > 0) ||
+      (stockFilter === 'critical' && item.stock <= criticalThreshold && item.stock > 0) ||
+      (stockFilter === 'zero' && item.stock === 0);
     
     return matchesSearch && matchesFilter;
   });
+
+  // Mostrar modal de autenticación si no hay usuario logueado
+  if (!userRole) {
+    return (
+      <>
+        <Layout>
+          <div className="flex items-center justify-center min-h-96">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-slate-600">Iniciando sistema...</p>
+            </div>
+          </div>
+        </Layout>
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => {}}
+          onLogin={handleLogin}
+        />
+      </>
+    );
+  }
 
   if (loading) {
     return (
@@ -179,10 +247,7 @@ function App() {
     );
   }
 
-  // Modo espectador
-  if (viewMode === 'viewer') {
-    return <ViewerMode onBackToEditor={() => setViewMode('editor')} />;
-  }
+  const isAdmin = userRole === 'administrador';
 
   return (
     <Layout>
@@ -191,49 +256,57 @@ function App() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h2 className="text-2xl font-bold text-slate-900">Inventario Industrial</h2>
-            <p className="text-slate-600">Gestión completa de materiales y suministros</p>
+            <p className="text-slate-600">
+              Gestión completa de materiales y suministros - {userRole === 'administrador' ? 'Administrador' : 'Operario'}
+            </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 items-end">
             <button
-              onClick={() => setViewMode('viewer')}
-              className="flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors font-medium"
+              onClick={handleLogout}
+              className="flex items-center space-x-2 px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg transition-colors font-medium"
             >
-              <Eye className="h-4 w-4" />
-              <span>Modo Espectador</span>
+              <LogOut className="h-4 w-4" />
+              <span>Cerrar Sesión</span>
             </button>
-            <button
-              onClick={() => setIsClearAllModalOpen(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium"
-            >
-              <Trash2 className="h-4 w-4" />
-              <span>Borrar Todo</span>
-            </button>
-            <button
-              onClick={() => setIsImportModalOpen(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium"
-            >
-              <FileSpreadsheet className="h-4 w-4" />
-              <span>Importar Excel</span>
-            </button>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Agregar Material</span>
-            </button>
+            
+            {isAdmin && (
+              <>
+                <button
+                  onClick={() => setIsClearAllModalOpen(true)}
+                  className="flex items-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>Borrar Todo</span>
+                </button>
+                <button
+                  onClick={() => setIsImportModalOpen(true)}
+                  className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium"
+                >
+                  <FileSpreadsheet className="h-4 w-4" />
+                  <span>Importar Excel</span>
+                </button>
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Agregar Material</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
 
         <StatsGrid items={items} />
 
-        <StockCriticalityCharts items={items} />
+        {isAdmin && <StockCriticalityCharts items={items} />}
 
         <SearchBar
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
           stockFilter={stockFilter}
           onFilterChange={setStockFilter}
+          onExportZeroStock={handleExportZeroStock}
         />
 
         {currentView === 'categories' ? (
@@ -242,10 +315,11 @@ function App() {
             onUpdateStock={handleUpdateStock}
             onEditItem={handleEditItem}
             onDeleteItem={handleDeleteItem}
-            onAddItem={handleAddItem}
+            onAddItem={isAdmin ? handleAddItem : undefined}
             updatingItems={updatingItems}
             deletingItems={deletingItems}
             isAdding={isAdding}
+            userRole={userRole}
           />
         ) : filteredItems.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-xl border border-slate-200">
@@ -259,10 +333,10 @@ function App() {
               <p className="text-slate-600 mb-4">
                 {searchTerm || stockFilter !== 'all' 
                   ? 'Intenta ajustar los filtros de búsqueda'
-                  : 'Comienza agregando tu primer material al inventario'
+                  : isAdmin ? 'Comienza agregando tu primer material al inventario' : 'No hay materiales disponibles'
                 }
               </p>
-              {!searchTerm && stockFilter === 'all' && (
+              {!searchTerm && stockFilter === 'all' && isAdmin && (
                 <button
                   onClick={() => setIsModalOpen(true)}
                   className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
@@ -280,49 +354,54 @@ function App() {
                 key={item.id}
                 item={item}
                 onUpdateStock={handleUpdateStock}
-                onEditItem={handleEditItem}
-               onDeleteItem={handleDeleteItem}
+                onEditItem={isAdmin ? handleEditItem : undefined}
+                onDeleteItem={isAdmin ? handleDeleteItem : undefined}
                 isUpdating={updatingItems.has(item.id)}
-               isDeleting={deletingItems.has(item.id)}
+                isDeleting={deletingItems.has(item.id)}
+                isViewerMode={!isAdmin}
               />
             ))}
           </div>
         )}
 
-        <AddItemModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onAdd={handleAddItem}
-          isAdding={isAdding}
-        />
+        {isAdmin && (
+          <>
+            <AddItemModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              onAdd={handleAddItem}
+              isAdding={isAdding}
+            />
 
-        {editingItem && (
-          <EditItemModal
-            isOpen={isEditModalOpen}
-            onClose={() => {
-              setIsEditModalOpen(false);
-              setEditingItem(null);
-            }}
-            onSave={handleSaveItem}
-            item={editingItem}
-            isSaving={isSaving}
-          />
+            {editingItem && (
+              <EditItemModal
+                isOpen={isEditModalOpen}
+                onClose={() => {
+                  setIsEditModalOpen(false);
+                  setEditingItem(null);
+                }}
+                onSave={handleSaveItem}
+                item={editingItem}
+                isSaving={isSaving}
+              />
+            )}
+
+            <ImportExcelModal
+              isOpen={isImportModalOpen}
+              onClose={() => setIsImportModalOpen(false)}
+              onImport={handleImportItems}
+              isImporting={isImporting}
+            />
+
+            <ClearAllModal
+              isOpen={isClearAllModalOpen}
+              onClose={() => setIsClearAllModalOpen(false)}
+              onConfirm={handleClearAll}
+              isClearing={isClearing}
+              totalItems={items.length}
+            />
+          </>
         )}
-
-        <ImportExcelModal
-          isOpen={isImportModalOpen}
-          onClose={() => setIsImportModalOpen(false)}
-          onImport={handleImportItems}
-          isImporting={isImporting}
-        />
-
-        <ClearAllModal
-          isOpen={isClearAllModalOpen}
-          onClose={() => setIsClearAllModalOpen(false)}
-          onConfirm={handleClearAll}
-          isClearing={isClearing}
-          totalItems={items.length}
-        />
       </div>
     </Layout>
   );

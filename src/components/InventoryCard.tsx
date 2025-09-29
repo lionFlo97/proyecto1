@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Package, MapPin, Edit3, Check, X, AlertTriangle, Image, Settings, Trash2, ArrowRight } from 'lucide-react';
+import { Package, MapPin, Edit3, Check, X, AlertTriangle, Image, Settings, Trash2, ArrowRight, ShoppingCart } from 'lucide-react';
 import { InventoryItem } from '../types/inventory';
 
 interface InventoryCardProps {

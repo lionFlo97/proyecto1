@@ -9,14 +9,15 @@ import { CategoryReassignModal } from './CategoryReassignModal';
 interface CategoryViewProps {
   items: InventoryItem[];
   onUpdateStock: (id: number, stock: number) => void;
-  onEditItem: (item: InventoryItem) => void;
-  onDeleteItem: (id: number) => void;
-  onAddItem: (item: NewInventoryItem) => void;
+  onEditItem?: (item: InventoryItem) => void;
+  onDeleteItem?: (id: number) => void;
+  onAddItem?: (item: NewInventoryItem) => void;
   updatingItems: Set<number>;
   deletingItems: Set<number>;
   isAdding: boolean;
   onReassignCategory?: (itemId: number, newCategory: string) => void;
   isReassigning?: boolean;
+  userRole?: 'operario' | 'administrador';
 }
 
 // Función para determinar la categoría automáticamente
@@ -99,7 +100,7 @@ const categoryIcons: { [key: string]: React.ComponentType<any> } = {
   'Otros': Package,
 };
 
-export function CategoryView({ items, onUpdateStock, onEditItem, onDeleteItem, onAddItem, updatingItems, deletingItems, isAdding }: CategoryViewProps) {
+export function CategoryView({ items, onUpdateStock, onEditItem, onDeleteItem, onAddItem, updatingItems, deletingItems, isAdding, userRole }: CategoryViewProps) {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -137,7 +138,7 @@ export function CategoryView({ items, onUpdateStock, onEditItem, onDeleteItem, o
 
   const handleAddItem = (item: NewInventoryItem) => {
     const itemWithCategory = { ...item, categoria: selectedCategory };
-    onAddItem(itemWithCategory);
+    onAddItem?.(itemWithCategory);
   };
 
   const handleReassignCategory = (item: InventoryItem, currentCategory: string) => {
@@ -151,7 +152,7 @@ export function CategoryView({ items, onUpdateStock, onEditItem, onDeleteItem, o
       setIsReassigning(true);
       // Actualizar el item con la nueva categoría
       const itemToUpdate = items.find(item => item.id === itemId);
-      if (itemToUpdate && onEditItem) {
+      if (itemToUpdate && onEditItem && userRole === 'administrador') {
         const updatedItem = { ...itemToUpdate, categoria: newCategory };
         onEditItem(updatedItem);
       }
@@ -222,13 +223,15 @@ export function CategoryView({ items, onUpdateStock, onEditItem, onDeleteItem, o
                 <div className="text-right text-sm text-slate-500">
                   <div>Total: {categoryItems.reduce((sum, item) => sum + item.stock, 0)}</div>
                 </div>
-                <button
-                  onClick={() => handleAddToCategory(category)}
-                  className="flex items-center space-x-1 px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                  title={`Agregar material a ${category}`}
-                >
-                  <Plus className="h-3 w-3" />
-                </button>
+                {userRole === 'administrador' && onAddItem && (
+                  <button
+                    onClick={() => handleAddToCategory(category)}
+                    className="flex items-center space-x-1 px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                    title={`Agregar material a ${category}`}
+                  >
+                    <Plus className="h-3 w-3" />
+                  </button>
+                )}
                 {isExpanded ? (
                   <ChevronDown className="h-5 w-5 text-slate-400" />
                 ) : (
@@ -250,6 +253,7 @@ export function CategoryView({ items, onUpdateStock, onEditItem, onDeleteItem, o
                       onReassignCategory={(item) => handleReassignCategory(item, category)}
                       isUpdating={updatingItems.has(item.id)}
                       isDeleting={deletingItems.has(item.id)}
+                      isViewerMode={userRole !== 'administrador'}
                     />
                   ))}
                 </div>
@@ -259,29 +263,33 @@ export function CategoryView({ items, onUpdateStock, onEditItem, onDeleteItem, o
         );
       })}
 
-      <AddItemModal
-        isOpen={isAddModalOpen}
-        onClose={() => {
-          setIsAddModalOpen(false);
-          setSelectedCategory('');
-        }}
-        onAdd={handleAddItem}
-        isAdding={isAdding}
-        preselectedCategory={selectedCategory}
-      />
+      {userRole === 'administrador' && onAddItem && (
+        <AddItemModal
+          isOpen={isAddModalOpen}
+          onClose={() => {
+            setIsAddModalOpen(false);
+            setSelectedCategory('');
+          }}
+          onAdd={handleAddItem}
+          isAdding={isAdding}
+          preselectedCategory={selectedCategory}
+        />
+      )}
 
-      <CategoryReassignModal
-        isOpen={isReassignModalOpen}
-        onClose={() => {
-          setIsReassignModalOpen(false);
-          setItemToReassign(null);
-          setCurrentItemCategory('');
-        }}
-        onReassign={handleConfirmReassign}
-        item={itemToReassign}
-        currentCategory={currentItemCategory}
-        isReassigning={isReassigning}
-      />
+      {userRole === 'administrador' && (
+        <CategoryReassignModal
+          isOpen={isReassignModalOpen}
+          onClose={() => {
+            setIsReassignModalOpen(false);
+            setItemToReassign(null);
+            setCurrentItemCategory('');
+          }}
+          onReassign={handleConfirmReassign}
+          item={itemToReassign}
+          currentCategory={currentItemCategory}
+          isReassigning={isReassigning}
+        />
+      )}
     </div>
   );
 }

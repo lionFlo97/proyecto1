@@ -241,7 +241,7 @@ export function InventoryCard({
         )}
 
         {/* Botón de carrito solo para tecnicos */}
-        {userRole === "operario" && (
+        {userRole === "tecnico" && (
           <button
             onClick={() => onAddToCart?.(item)}
             className="flex items-center space-x-1 px-2 py-1 text-xs text-orange-600 hover:bg-orange-50 rounded transition-colors"

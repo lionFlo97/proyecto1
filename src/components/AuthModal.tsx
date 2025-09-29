@@ -121,7 +121,7 @@ export function AuthModal({ isOpen, onClose, onLogin }: AuthModalProps) {
 
           <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
             <p className="text-xs text-slate-600 mb-2">Credenciales de prueba:</p>
-            <p className="text-xs text-slate-700">• Operario: <code>operario123</code></p>
+            <p className="text-xs text-slate-700">• tecnico: <code>tecnico123</code></p>
             <p className="text-xs text-slate-700">• Administrador: <code>admin123</code></p>
           </div>
 

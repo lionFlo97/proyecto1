@@ -32,12 +32,11 @@ export function SearchBar({ searchTerm, onSearchChange, stockFilter, onFilterCha
         <select
           value={stockFilter}
           onChange={(e) => onFilterChange(e.target.value as any)}
-          className="px-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white shadow-sm"
+          className="px-3 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white"
         >
           <option value="all">Todos los niveles</option>
           <option value="low">Stock bajo (≤ Punto Pedido)</option>
           <option value="critical">Stock crítico (≤ 50% Punto Pedido)</option>
-          <option value="zero">Sin stock (0)</option>
         </select>
       </div>
     </div>

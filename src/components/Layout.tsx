@@ -1,70 +1,47 @@
-import React from "react";
-import { Sun, Moon, Menu } from "lucide-react";
+import React from 'react';
+import { Package, Wrench } from 'lucide-react';
 
-type Props = {
+interface LayoutProps {
   children: React.ReactNode;
-};
+}
 
-const Layout: React.FC<Props> = ({ children }) => {
-  const [darkMode, setDarkMode] = React.useState(false);
-  const [sidebarOpen, setSidebarOpen] = React.useState(true);
-
+export function Layout({ children }: LayoutProps) {
   return (
-    <div className={darkMode ? "dark bg-gray-900 text-white" : "bg-gray-50 text-gray-900"}>
-      {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 bg-white shadow-md dark:bg-gray-800">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
-          <h1 className="text-xl font-bold">📦 Control de Bodega</h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <header className="bg-white shadow-sm border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center justify-center w-10 h-10 bg-white rounded-lg border border-slate-200">
+                <img
+                  src="https://ecuajugos.com/wp-content/uploads/2019/06/ecuajugos-color@2xv1.png"
+                  alt="Ecuajugos Logo"
+                  className="w-8 h-8 object-contain"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    target.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+                <div className="bg-blue-600 p-2 rounded-lg hidden">
+                  <Package className="h-6 w-6 text-white" />
+                </div>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-slate-900">Mi bodega EJ-TEC</h1>
+                <p className="text-sm text-slate-600">Sistema de Gestión Industrial -  Ecuajugos S.A.</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2 text-slate-600">
+              <Wrench className="h-5 w-5" />
+              <span className="text-sm font-medium">Stock de Inventario</span>
+            </div>
+          </div>
         </div>
-
-        {/* Botón modo claro/oscuro */}
-        <button
-          onClick={() => setDarkMode(!darkMode)}
-          className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
-        >
-          {darkMode ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
-        </button>
       </header>
-
-      <div className="flex">
-        {/* Sidebar */}
-        {sidebarOpen && (
-          <aside className="w-64 bg-white dark:bg-gray-800 shadow-md h-screen p-4">
-            <nav className="space-y-3">
-              <a href="#" className="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
-                📊 Panel Principal
-              </a>
-              <a href="#" className="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
-                📦 Inventario
-              </a>
-              <a href="#" className="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
-                🔄 Movimientos
-              </a>
-              <a href="#" className="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
-                📑 Reportes
-              </a>
-              <a href="#" className="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
-                ⬆️ Importar / Exportar
-              </a>
-              <a href="#" className="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
-                ⚙️ Configuración
-              </a>
-            </nav>
-          </aside>
-        )}
-
-        {/* Contenido */}
-        <main className="flex-1 p-6">{children}</main>
-      </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {children}
+      </main>
     </div>
   );
-};
-
-export default Layout;
-
+}

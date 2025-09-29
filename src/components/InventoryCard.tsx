@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Package, MapPin, Edit3, Check, X, AlertTriangle, Image, Settings, Trash2, ArrowRight, ShoppingCart } from 'lucide-react';
-import { InventoryItem } from '../types/inventory';
+import { Package, MapPin, CreditCard as Edit3, Check, X, AlertTriangle, Image, Settings, Trash2, ArrowRight, ShoppingCart } from 'lucide-react'entoryItem } from '../types/inventory';
 
 interface InventoryCardProps {
   item: InventoryItem;
@@ -131,7 +130,7 @@ export function InventoryCard({ item, onUpdateStock, onEditItem, onDeleteItem, o
 
         {!isViewerMode && (
           <div className="flex space-x-1">
-            {!isEditing && (
+            {!isEditing && !isViewerMode && (
               <button
                 onClick={() => setIsEditing(true)}
                 className="flex items-center space-x-1 px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors"
@@ -140,7 +139,7 @@ export function InventoryCard({ item, onUpdateStock, onEditItem, onDeleteItem, o
                 <span>Stock</span>
               </button>
             )}
-            {onEditItem && (
+            {onEditItem && !isViewerMode && (
               <button
                 onClick={() => onEditItem(item)}
                 className="flex items-center space-x-1 px-2 py-1 text-xs text-green-600 hover:bg-green-50 rounded transition-colors"
@@ -149,7 +148,7 @@ export function InventoryCard({ item, onUpdateStock, onEditItem, onDeleteItem, o
                 <span>Editar</span>
               </button>
             )}
-            {onReassignCategory && (
+            {onReassignCategory && !isViewerMode && (
               <button
                 onClick={() => onReassignCategory(item)}
                 className="flex items-center space-x-1 px-2 py-1 text-xs text-purple-600 hover:bg-purple-50 rounded transition-colors"
@@ -159,7 +158,7 @@ export function InventoryCard({ item, onUpdateStock, onEditItem, onDeleteItem, o
                 <span>Categoría</span>
               </button>
             )}
-            {onDeleteItem && (
+            {onDeleteItem && !isViewerMode && (
               <button
                 onClick={() => onDeleteItem(item.id)}
                 disabled={isDeleting}
@@ -173,6 +172,18 @@ export function InventoryCard({ item, onUpdateStock, onEditItem, onDeleteItem, o
                 <span>{isDeleting ? 'Eliminando...' : 'Eliminar'}</span>
               </button>
             )}
+            
+            {/* Botón de carrito siempre visible */}
+            <button
+              onClick={() => {
+                // Aquí implementarías la lógica del carrito
+                console.log('Agregar al carrito:', item);
+              }}
+              className="flex items-center space-x-1 px-2 py-1 text-xs text-orange-600 hover:bg-orange-50 rounded transition-colors"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              <span>Carrito</span>
+            </button>
           </div>
         )}
 

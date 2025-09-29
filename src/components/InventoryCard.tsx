@@ -23,8 +23,8 @@ interface InventoryCardProps {
   isUpdating: boolean;
   isDeleting?: boolean;
   isViewerMode?: boolean;
-  userRole?: "operario" | "administrador" | null; // 👈 nuevo
-  onAddToCart?: (item: InventoryItem) => void; // 👈 nuevo (callback desde App)
+  userRole?: "tecnico" | "administrador" | null; // Roles para admin y tecnico
+  onAddToCart?: (item: InventoryItem) => void; //  (callback desde App)
 }
 
 export function InventoryCard({

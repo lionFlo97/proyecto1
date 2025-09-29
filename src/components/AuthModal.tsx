@@ -8,7 +8,7 @@ interface AuthModalProps {
 }
 
 export function AuthModal({ isOpen, onClose, onLogin }: AuthModalProps) {
-  const [selectedRole, setSelectedRole] = useState<'operario' | 'administrador'>('operario');
+  const [selectedRole, setSelectedRole] = useState<'operario' | 'administrador'>('tecnico');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
